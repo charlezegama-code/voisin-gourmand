@@ -1,0 +1,14 @@
+name = "voisin-gourmand"
+main = "worker/index.ts"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "voisin-gourmand-db"
+database_id = "45e214b3-5499-4c80-bdc3-aa4c8f33aa50"

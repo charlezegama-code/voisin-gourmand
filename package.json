@@ -1,0 +1,42 @@
+{
+  "name": "voisin-gourmand",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "worker:dev": "wrangler dev",
+    "build": "tsc -b && vite build",
+    "typecheck:worker": "tsc -p tsconfig.worker.json",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "deploy": "npm run build && wrangler deploy",
+    "db:seed:local": "wrangler d1 execute voisin-gourmand-db --local --file=db/schema.sql && wrangler d1 execute voisin-gourmand-db --local --file=db/seed.sql",
+    "db:seed:remote": "wrangler d1 execute voisin-gourmand-db --remote --file=db/schema.sql && wrangler d1 execute voisin-gourmand-db --remote --file=db/seed.sql",
+    "gen:assets": "python3 scripts/gen_assets.py",
+    "gen:seed": "node scripts/gen_seed.mjs"
+  },
+  "dependencies": {
+    "hono": "^4.13.5",
+    "leaflet": "^1.9.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-leaflet": "^5.0.0",
+    "react-router-dom": "^7.18.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260902.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/leaflet": "^1.9.22",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "oxlint": "^1.79.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.2",
+    "vite-plugin-pwa": "^1.3.0",
+    "wrangler": "^4.128.0"
+  }
+}
