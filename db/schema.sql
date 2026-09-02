@@ -17,7 +17,8 @@ CREATE TABLE cooks (
   lat REAL NOT NULL,
   lng REAL NOT NULL,
   pickup_address TEXT NOT NULL,
-  verified INTEGER NOT NULL DEFAULT 0
+  verified INTEGER NOT NULL DEFAULT 0,
+  is_new INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE dishes (
@@ -28,8 +29,7 @@ CREATE TABLE dishes (
   price REAL NOT NULL,
   quantity_available INTEGER NOT NULL,
   pickup_window TEXT NOT NULL,
-  category TEXT NOT NULL,
-  emoji TEXT NOT NULL
+  category TEXT NOT NULL
 );
 
 CREATE TABLE reviews (
