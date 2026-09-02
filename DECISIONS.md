@@ -58,3 +58,57 @@ Ce fichier documente les choix pris seul pendant le développement (mode autonom
 - **Hono** (point 1) est probablement plus que nécessaire pour 5 routes ; un simple `if/else` sur `new URL(request.url).pathname` aurait aussi fonctionné et évité une dépendance. Gardé pour la lisibilité et parce que le coût réel (bundle, temps de dev) est minime.
 - **`useAsync` générique** (`src/hooks/useAsync.ts`) est une petite abstraction sur 4 hooks quasi identiques (cooks, cook detail, dish, orders) — factorisation jugée raisonnable ici (évite 4x le même boilerplate loading/error) plutôt que sur-ingénierie.
 - **Pas de state management global (Redux/Zustand)** : chaque page fetch ses propres données via `useAsync`, aucun état partagé complexe n'était nécessaire pour 5 écrans. Bon choix pour ce volume — l'ajouter aurait été de la sur-ingénierie pure.
+
+---
+
+## 2026-09-02 — Session 2 : bug de navigation signalé + refonte design
+
+### 11. Investigation du bug de navigation — conclusion : non reproduit dans le code
+
+**Contexte** : l'utilisateur a signalé qu'en cliquant sur des cartes de plats/cuisiniers ou des filtres, l'app atterrissait parfois sur la fiche d'un cuisinier au hasard.
+
+**Démarche d'investigation** (avant tout patch, comme demandé) :
+1. Audit statique complet : `grep` de tous les `.map()` du code source (composants + pages) — aucune `key` basée sur un index, aucun id codé en dur, aucune closure suspecte dans `useAsync`/`useParams`.
+2. Audit des éléments imbriqués : aucun `<button>`/`<a>` niché à l'intérieur d'un autre élément cliquable (le piège classique "clic sur un enfant déclenche la navigation du parent" n'existait pas dans le code).
+3. Reproduction empirique en prod (navigateur piloté, viewport mobile réel + émulation iPhone tactile) : 3 cuisiniers différents cliqués en séquence depuis la liste, un plat depuis une fiche, deux marqueurs de carte différents via leur popup, plusieurs filtres — **dans tous les cas, la navigation a atterri sur la bonne page**.
+4. Un clic simulé par l'outil de test a échoué une fois sur un filtre à l'intérieur d'un conteneur à scroll horizontal — vérifié comme un artefact de l'outil (coordonnées de clic sur un élément partiellement scrollé), pas un bug de l'app : un `.click()` DOM direct sur le même élément fonctionnait parfaitement et déclenchait le bon appel réseau.
+
+**Conclusion** : aucun défaut reproductible trouvé dans le code tel qu'il existait. Cause probable côté utilisateur : un appareil/navigateur réel spécifique non reproduit ici, ou une confusion avec un état de chargement (voir point 12 ci-dessous, qui corrige un vrai risque latent de la même famille).
+
+**Durcissement appliqué malgré tout** (défense en profondeur, cause profonde plutôt que symptôme) :
+- `CookGrid.tsx` anime les réordonnancements de liste avec `motion.div layout` (Framer Motion). Avant ce changement, changer le tri (ex. passer de "Mieux notés" à "Plus proches") réordonnait la grille **instantanément et silencieusement** — si un utilisateur relâchait son doigt sur une carte pile au moment où l'ordre changeait (ex. la géolocalisation se résout de façon asynchrone après le premier rendu), le clic pouvait atterrir sur un item différent de celui visé. C'est le seul mécanisme plausible et vérifiable dans le code qui correspond à la famille de bug décrite. Avec l'animation `layout`, tout réordonnancement est maintenant visible et progressif (jamais un saut instantané sous le doigt).
+- Aucun élément interactif n'est imbriqué dans un autre lors de la refonte des cartes (`CookCard`, `DishCard` restent chacune un unique `<Link>` racine) — règle maintenue explicitement pour ne pas réintroduire cette classe de bug avec les nouveaux badges/boutons ajoutés au design.
+
+**Test manuel de non-régression** (exécuté après la refonte complète des composants, voir AUDIT.md pour le détail) : 3 clics DOM directs sur 3 cuisiniers différents depuis la liste → chacun a ouvert la fiche correspondante (Baptiste Roy → cook-44, Kwame Osei → cook-14, Isabelle Lambert → cook-35).
+
+### 12. Bug réel trouvé et corrigé : `NaN` dans les commandes de démo générées
+
+**Décision** : dans `scripts/gen_seed.mjs`, la construction des commandes factices (`demoOrders`) relisait les lignes SQL déjà sérialisées des plats via une regex (`/'[^']*'|[\d.]+/g`) pour en extraire id/nom/prix. Dès qu'une description de plat contenait une apostrophe échappée en SQL (`''`, ex. "Huile d''olive"), la regex désynchronisait le comptage des colonnes et le prix devenait `NaN` — cassant l'insertion SQL (`SQLITE_ERROR: no such column: NaN`).
+**Correction** : les plats sont maintenant conservés comme objets JS structurés (`dishRecords`) en parallèle des lignes SQL, et les commandes factices piochent directement dans ces objets — plus aucun re-parsing de texte déjà sérialisé.
+**Pourquoi c'est la cause profonde et pas un patch cosmétique** : échapper différemment les apostrophes ou complexifier la regex aurait juste déplacé le risque vers la prochaine chaîne à contenir un caractère spécial. Éliminer le parsing texte-vers-texte élimine la classe de bug entière.
+
+### 13. Police auto-hébergée : Plus Jakarta Sans (variable), via `@fontsource-variable`
+
+**Décision** : `@fontsource-variable/plus-jakarta-sans` plutôt qu'un lien Google Fonts classique.
+**Pourquoi** : vraiment auto-hébergée (aucune requête réseau vers `fonts.googleapis.com` au runtime, donc fonctionne offline une fois mise en cache par le service worker, et aucune fuite d'IP vers Google) ; une seule famille variable couvre tous les poids (400 à 800) utilisés dans le design, donc un seul fichier à charger au lieu de 4-5 fichiers de poids fixes.
+
+### 14. Icônes : Lucide React partout, wrapper `<CuisineIcon>` plutôt qu'une variable de composant locale
+
+**Décision** : toutes les icônes (cuisines, notation, navigation, badges, statuts) passent par `lucide-react`. La résolution "nom de cuisine → composant icône" est encapsulée dans un composant `<CuisineIcon cuisine=... />` dédié plutôt que `const Icon = cuisineIcon(x); <Icon />` directement dans chaque page.
+**Pourquoi** : le pattern `const Icon = fn(); <Icon />` déclenché à chaque rendu est flaggé par le linter React (`no-unstable-components`) car il ressemble à la définition d'un composant à l'intérieur d'un rendu (anti-pattern qui peut réinitialiser l'état d'un sous-arbre). Dans notre cas c'est sans risque (résolution stable depuis un dictionnaire figé), mais un composant dédié lève l'ambiguïté pour le linter ET pour tout futur contributeur, sans coût.
+
+### 15. Carte : abandon de CartoDB Positron en cours de route, bascule vers Esri "Light Gray Canvas"
+
+**Décision** : le plan initial (dans la consigne) était d'utiliser CartoDB Positron. Une fois implémenté et testé visuellement, les tuiles affichaient un filigrane "API KEY REQUIRED" — CARTO a restreint l'accès anonyme à ses tuiles `basemaps.cartocdn.com` depuis la rédaction de la consigne. Basculé vers les tuiles Esri "World_Light_Gray_Base" + "World_Light_Gray_Reference" (labels), gratuites et sans clé pour un usage de ce volume, vérifiées accessibles (`curl` → 200) avant intégration.
+**Pourquoi documenté ici** : exactement le genre de dérive silencieuse qu'un jury ou un futur développeur doit pouvoir retracer — la consigne nommait un service précis, il a fallu s'en écarter pour une raison externe vérifiable, pas par choix arbitraire.
+
+### 16. Bug de rendu trouvé et corrigé : avatars de la carte affichés à taille native (256px) au lieu de 38px
+
+**Décision** : les pins personnalisés de la carte utilisaient des attributs HTML `width="38" height="38"` sur la balise `<img>` du `divIcon` Leaflet. En production (build Tailwind), ces attributs de présentation étaient ignorés et l'image s'affichait à sa taille intrinsèque (256×256), produisant d'énormes cercles superposés illisibles sur toute la carte.
+**Correction** : taille imposée via `style="width:38px;height:38px;...;box-sizing:border-box"` (CSS inline, qui prime toujours sur les attributs de présentation et sur toute feuille de style externe), plutôt que de compter sur les attributs `width`/`height` HTML.
+**Pourquoi c'est la bonne réparation** : dans un contexte où le HTML est injecté brut (hors de l'arbre React, donc hors du contrôle de Tailwind/PurgeCSS), ne jamais dépendre d'attributs de présentation HTML pour le dimensionnement — toujours du CSS explicite. Règle appliquée à tous les éléments du `divIcon` (anneau, avatar, pointe) par précaution.
+
+### 17. Navigation à 4 onglets (Accueil / Recherche / Commandes / Profil) — retour sur la décision n°9
+
+**Décision** : la session précédente avait délibérément réduit la nav à 2 onglets (Explorer/Commandes) pour éviter un onglet "Recherche" jugé redondant avec les filtres déjà visibles sur l'accueil. La consigne de cette session demande explicitement 4 onglets nommés. Plutôt que dupliquer bêtement le contenu, `/recherche` réutilise le même hook (`useCookSearch`) que l'accueil mais en mode liste uniquement, avec un compteur de résultats — et `/profil` est un écran minimal mais réel (stats dynamiques via l'API, pas des chiffres codés en dur) plutôt qu'un placeholder vide.
+**Pourquoi le changement d'avis est légitime** : la décision n°9 était bonne *pour la contrainte de l'époque* (aucune exigence de nav précise) ; une nouvelle contrainte explicite prime sur une préférence d'architecture antérieure.

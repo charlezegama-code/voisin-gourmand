@@ -24,6 +24,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export interface CookListItem extends Cook {
   minPrice: number | null;
   dishCount: number;
+  soldOutToday: boolean;
 }
 
 export function fetchCooks(filters: { cuisine?: CuisineType; maxPrice?: number; q?: string } = {}) {

@@ -17,6 +17,7 @@ export interface CookRow {
   lng: number;
   pickup_address: string;
   verified: number;
+  is_new: number;
 }
 
 export interface DishRow {
@@ -28,7 +29,6 @@ export interface DishRow {
   quantity_available: number;
   pickup_window: string;
   category: string;
-  emoji: string;
 }
 
 export interface ReviewRow {

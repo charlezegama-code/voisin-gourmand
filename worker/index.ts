@@ -33,7 +33,8 @@ app.get("/api/cooks", async (c) => {
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
   const { results } = await c.env.DB.prepare(
-    `SELECT cooks.*, MIN(dishes.price) as min_price, COUNT(dishes.id) as dish_count
+    `SELECT cooks.*, MIN(dishes.price) as min_price, COUNT(dishes.id) as dish_count,
+            COALESCE(SUM(dishes.quantity_available), 0) as total_available
      FROM cooks
      LEFT JOIN dishes ON dishes.cook_id = cooks.id
      ${where}
@@ -41,9 +42,14 @@ app.get("/api/cooks", async (c) => {
      ORDER BY cooks.rating DESC`
   )
     .bind(...params)
-    .all<CookRow & { min_price: number; dish_count: number }>();
+    .all<CookRow & { min_price: number; dish_count: number; total_available: number }>();
 
-  let cooks = results.map((row) => ({ ...mapCook(row), minPrice: row.min_price, dishCount: row.dish_count }));
+  let cooks = results.map((row) => ({
+    ...mapCook(row),
+    minPrice: row.min_price,
+    dishCount: row.dish_count,
+    soldOutToday: row.dish_count > 0 && row.total_available === 0,
+  }));
 
   if (maxPrice) {
     const max = Number(maxPrice);

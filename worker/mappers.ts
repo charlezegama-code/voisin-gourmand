@@ -15,6 +15,7 @@ export function mapCook(row: CookRow) {
     lng: row.lng,
     pickupAddress: row.pickup_address,
     verified: row.verified === 1,
+    isNew: row.is_new === 1,
   };
 }
 
@@ -28,7 +29,6 @@ export function mapDish(row: DishRow) {
     quantityAvailable: row.quantity_available,
     pickupWindow: row.pickup_window,
     category: row.category,
-    emoji: row.emoji,
   };
 }
 

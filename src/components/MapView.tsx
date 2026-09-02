@@ -2,29 +2,27 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { divIcon } from "leaflet";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { ChevronRight, BadgeCheck } from "lucide-react";
 import { PARIS_CENTER } from "../lib/geo";
 import { StarRating } from "./StarRating";
 import type { CookListItem } from "../lib/api";
 
-const CUISINE_EMOJI: Record<string, string> = {
-  Française: "🥐",
-  Maghrébine: "🍛",
-  Asiatique: "🍜",
-  Africaine: "🍲",
-  Italienne: "🍝",
-};
-
-function cookIcon(cook: CookListItem) {
-  const emoji = CUISINE_EMOJI[cook.specialty] ?? "🍽️";
+function cookIcon(cook: CookListItem, index: number) {
+  const ring = cook.soldOutToday ? "#9a8f85" : cook.isNew ? "#4a7c59" : "#c45a33";
+  const delay = Math.min(index * 45, 900);
   return divIcon({
     className: "",
-    html: `<div class="relative flex flex-col items-center">
-      <div class="flex h-9 w-9 items-center justify-center rounded-full bg-terracotta-500 text-base shadow-lg ring-2 ring-white">${emoji}</div>
-      <div class="-mt-0.5 h-2 w-2 rotate-45 bg-terracotta-500"></div>
+    html: `<div class="vg-marker" style="animation-delay:${delay}ms">
+      <div style="position:relative;display:flex;flex-direction:column;align-items:center;">
+        <div style="width:44px;height:44px;border-radius:9999px;padding:3px;background:${ring};box-shadow:0 4px 12px -2px rgba(43,33,25,0.35);box-sizing:border-box;">
+          <img src="${cook.avatarUrl}" style="width:38px;height:38px;border-radius:9999px;object-fit:cover;display:block;border:2px solid white;box-sizing:border-box;" />
+        </div>
+        <div style="width:9px;height:9px;margin-top:-4px;transform:rotate(45deg);background:${ring};box-shadow:2px 2px 3px -1px rgba(43,33,25,0.25);"></div>
+      </div>
     </div>`,
-    iconSize: [36, 44],
-    iconAnchor: [18, 44],
-    popupAnchor: [0, -40],
+    iconSize: [44, 52],
+    iconAnchor: [22, 52],
+    popupAnchor: [0, -48],
   });
 }
 
@@ -46,36 +44,45 @@ export function MapView({ cooks, center }: MapViewProps) {
   const mapCenter: [number, number] = center ?? [PARIS_CENTER.lat, PARIS_CENTER.lng];
 
   return (
-    <MapContainer
-      center={mapCenter}
-      zoom={13}
-      scrollWheelZoom
-      className="h-full w-full"
-      attributionControl={true}
-    >
+    <MapContainer center={mapCenter} zoom={13} scrollWheelZoom className="h-full w-full" attributionControl={true}>
+      {/* Fond de carte clair et épuré, gratuit et sans clé API (Esri Light Gray Canvas) */}
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution="Tiles &copy; Esri — Esri, HERE, Garmin, FAO, NOAA, USGS"
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+        maxZoom={16}
+      />
+      <TileLayer
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+        maxZoom={16}
       />
       <RecenterOnChange center={mapCenter} />
-      {cooks.map((cook) => (
-        <Marker key={cook.id} position={[cook.lat, cook.lng]} icon={cookIcon(cook)}>
+      {cooks.map((cook, index) => (
+        <Marker key={cook.id} position={[cook.lat, cook.lng]} icon={cookIcon(cook, index)}>
           <Popup>
-            <div className="min-w-[180px] space-y-1">
-              <p className="font-semibold text-ink">{cook.name}</p>
-              <p className="text-xs text-ink/60">
-                {cook.specialty} · {cook.neighborhood}
-              </p>
-              <StarRating rating={cook.rating} size="sm" />
-              <p className="text-xs font-medium text-terracotta-600">
-                {cook.minPrice != null ? `dès ${cook.minPrice.toFixed(2)}€` : "—"}
-              </p>
-              <Link
-                to={`/cuisiniers/${cook.id}`}
-                className="mt-1 inline-block rounded-full bg-terracotta-500 px-3 py-1 text-xs font-semibold text-white"
-              >
-                Voir la fiche
-              </Link>
+            <div className="flex min-w-[190px] gap-2.5">
+              <img src={cook.avatarUrl} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
+              <div className="min-w-0 flex-1 space-y-1">
+                <div className="flex items-center gap-1">
+                  <p className="truncate font-bold text-ink">{cook.name}</p>
+                  {cook.verified && <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-sage-600" strokeWidth={2.5} />}
+                </div>
+                <p className="truncate text-xs text-ink/55">
+                  {cook.specialty} · {cook.neighborhood}
+                </p>
+                <StarRating rating={cook.rating} size="sm" />
+                <div className="flex items-center justify-between pt-0.5">
+                  <span className="text-xs font-bold text-terracotta-600">
+                    {cook.minPrice != null ? `dès ${cook.minPrice.toFixed(2)}€` : "—"}
+                  </span>
+                  <Link
+                    to={`/cuisiniers/${cook.id}`}
+                    className="flex items-center gap-0.5 rounded-full bg-terracotta-600 px-2.5 py-1 text-[11px] font-semibold text-white"
+                  >
+                    Voir la fiche
+                    <ChevronRight className="h-3 w-3" strokeWidth={2.5} />
+                  </Link>
+                </div>
+              </div>
             </div>
           </Popup>
         </Marker>

@@ -68,11 +68,17 @@ make_icon(192, maskable=True).save(os.path.join(ICONS_DIR, "icon-192-maskable.pn
 make_icon(64).save(os.path.join(PUBLIC, "favicon.png"))
 
 # --- Avatars des cuisiniers (initiales sur fond colore) ---
+# Doit rester synchronise avec la liste COOKS de scripts/gen_seed.mjs (meme ordre => meme cook-N.png)
 COOKS = [
     "Amina Kader", "Julien Marchand", "Thanh Nguyen", "Fatou Diallo", "Marco Ferrari",
     "Chloe Petit", "Youssef Bensaid", "Mai Tran", "Ibrahima Sow", "Sofia Romano",
     "Nadia Haddad", "Pierre Lefevre", "Linh Pham", "Kwame Osei", "Elena Conti",
     "Karim Belkacem", "Camille Rousseau", "Hana Kimura", "Moussa Traore", "Giulia Bianchi",
+    "Rami Nassar", "Lea Salame", "Priya Sharma", "Arjun Mehta", "Camila Rodrigues",
+    "Diego Fernandez", "Manon Girard", "Theo Dubois", "Yuki Sato", "Siriporn Boonmee",
+    "Wei Chen", "Aicha Ndiaye", "Samuel Kouassi", "Antoine Bernard", "Isabelle Lambert",
+    "Farid Amrani", "Yasmine Cherif", "Luca Moretti", "Chiara Esposito", "Omar Haddad",
+    "Ravi Iyer", "Valentina Torres", "Noemie Faure", "Baptiste Roy", "Salma Bakr",
 ]
 
 def make_avatar(name, color, size=256):

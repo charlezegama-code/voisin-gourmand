@@ -3,7 +3,11 @@ export type CuisineType =
   | "Maghrébine"
   | "Asiatique"
   | "Africaine"
-  | "Italienne";
+  | "Italienne"
+  | "Libanaise"
+  | "Indienne"
+  | "Sud-Américaine"
+  | "Végétarienne";
 
 export interface Cook {
   id: string;
@@ -19,6 +23,7 @@ export interface Cook {
   lng: number;
   pickupAddress: string;
   verified: boolean;
+  isNew: boolean;
 }
 
 export interface Dish {
@@ -30,7 +35,6 @@ export interface Dish {
   quantityAvailable: number;
   pickupWindow: string;
   category: CuisineType;
-  emoji: string;
 }
 
 export interface CookWithDishes extends Cook {

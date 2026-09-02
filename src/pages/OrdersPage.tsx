@@ -1,8 +1,9 @@
+import { motion } from "framer-motion";
 import { useAsync } from "../hooks/useAsync";
 import { fetchOrders } from "../lib/api";
 import { AppHeader } from "../components/AppHeader";
-import { LoadingState } from "../components/LoadingState";
 import { ErrorState } from "../components/ErrorState";
+import { DishCardSkeleton } from "../components/Skeletons";
 import type { Order } from "../types";
 
 const STATUS_LABEL: Record<Order["status"], string> = {
@@ -27,7 +28,13 @@ export function OrdersPage() {
       <AppHeader title="Mes commandes" subtitle="Historique de démo" />
 
       <div className="mt-2 flex-1 px-4">
-        {loading && <LoadingState label="Chargement des commandes…" />}
+        {loading && (
+          <div className="space-y-2.5">
+            <DishCardSkeleton />
+            <DishCardSkeleton />
+            <DishCardSkeleton />
+          </div>
+        )}
         {error && !loading && <ErrorState message={error} onRetry={reload} />}
 
         {!loading && !error && data && data.orders.length === 0 && (
@@ -36,8 +43,14 @@ export function OrdersPage() {
 
         {!loading && !error && data && data.orders.length > 0 && (
           <div className="space-y-2.5">
-            {data.orders.map((order) => (
-              <div key={order.id} className="flex gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-terracotta-50">
+            {data.orders.map((order, i) => (
+              <motion.div
+                key={order.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: Math.min(i * 0.04, 0.3) }}
+                className="flex gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-terracotta-50"
+              >
                 <img
                   src={order.cookAvatarUrl}
                   alt={order.cookName}
@@ -62,7 +75,7 @@ export function OrdersPage() {
                     <span className="font-semibold text-terracotta-600">{order.totalPrice.toFixed(2)}€</span>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
