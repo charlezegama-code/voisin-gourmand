@@ -8,7 +8,7 @@ import { DishCard } from "../components/DishCard";
 import { Badge } from "../components/Badge";
 import { ProfileHeaderSkeleton, DishCardSkeleton } from "../components/Skeletons";
 import { ErrorState } from "../components/ErrorState";
-import { CuisineIcon } from "../lib/cuisineIcons";
+import { ProgressiveImage } from "../components/ProgressiveImage";
 
 export function CookProfilePage() {
   const { id = "" } = useParams();
@@ -47,28 +47,30 @@ export function CookProfilePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="relative flex h-44 items-end bg-gradient-to-br from-terracotta-400 to-terracotta-600 px-4 pb-4"
+            className="relative flex h-64 items-end px-4 pb-4"
           >
-            <CuisineIcon
-              cuisine={data.cook.specialty}
-              className="absolute -right-4 -top-4 h-32 w-32 text-white/15"
-              strokeWidth={1}
+            <ProgressiveImage
+              src={data.cook.coverPhotoUrl}
+              alt=""
+              wrapperClassName="absolute inset-0"
+              className="h-full w-full object-cover"
             />
+            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
             <div className="absolute right-3 top-[calc(env(safe-area-inset-top)+0.75rem)] flex gap-1.5">
               {data.cook.isNew && <Badge tone="new">Nouveau</Badge>}
             </div>
-            <div className="flex items-end gap-3.5">
+            <div className="relative flex items-end gap-3.5">
               <img
                 src={data.cook.avatarUrl}
                 alt={data.cook.name}
-                className="h-20 w-20 rounded-2xl object-cover shadow-lg ring-4 ring-white/90"
+                className="h-20 w-20 rounded-full object-cover shadow-lg ring-4 ring-white/90"
               />
               <div className="min-w-0 pb-1 text-white">
                 <div className="flex items-center gap-1.5">
-                  <h1 className="truncate text-xl font-bold">{data.cook.name}</h1>
+                  <h1 className="truncate text-xl font-bold drop-shadow-sm">{data.cook.name}</h1>
                   {data.cook.verified && <BadgeCheck className="h-4.5 w-4.5 shrink-0" strokeWidth={2.5} />}
                 </div>
-                <p className="truncate text-sm text-white/85">
+                <p className="truncate text-sm text-white/90 drop-shadow-sm">
                   {data.cook.specialty} · {data.cook.neighborhood} ({data.cook.arrondissement}e)
                 </p>
               </div>

@@ -112,3 +112,45 @@ Ce fichier documente les choix pris seul pendant le développement (mode autonom
 
 **Décision** : la session précédente avait délibérément réduit la nav à 2 onglets (Explorer/Commandes) pour éviter un onglet "Recherche" jugé redondant avec les filtres déjà visibles sur l'accueil. La consigne de cette session demande explicitement 4 onglets nommés. Plutôt que dupliquer bêtement le contenu, `/recherche` réutilise le même hook (`useCookSearch`) que l'accueil mais en mode liste uniquement, avec un compteur de résultats — et `/profil` est un écran minimal mais réel (stats dynamiques via l'API, pas des chiffres codés en dur) plutôt qu'un placeholder vide.
 **Pourquoi le changement d'avis est légitime** : la décision n°9 était bonne *pour la contrainte de l'époque* (aucune exigence de nav précise) ; une nouvelle contrainte explicite prime sur une préférence d'architecture antérieure.
+
+---
+
+## 2026-09-07 — Session 3 : vraies photos + élimination des stéréotypes nom/cuisine
+
+### 18. Sourcing des photos : Unsplash (plats) + randomuser.me (portraits), aucune stockée localement
+
+**Décision** : les photos de plats viennent d'Unsplash (`images.unsplash.com/photo-<id>?w=800&h=600&fit=crop&q=80`), les portraits de cuisiniers de `randomuser.me/api/portraits/{men|women}/<n>.jpg`. Les deux sont chargées par URL directe côté client, jamais téléchargées/stockées dans `public/`.
+**Pourquoi** : les deux services servent des images statiques par CDN sans nécessiter de clé API pour un simple affichage `<img src=...>` (contrairement à leurs API de recherche respectives, qui nécessitent une authentification). Stocker les fichiers localement aurait dupliqué des données déjà servies par un CDN fiable, alourdi le repo Git, et empêché toute mise à jour future des photos sans re-commit.
+**Vérification anti-hallucination** : chaque URL Unsplash a été individuellement récupérée via recherche web puis validée par une requête `curl` retournant `200` avec un `content-type: image/*` avant d'être intégrée au seed — voir le rapport de l'agent de recherche et `scripts/dish_photos.json`. Aucun ID de photo n'a été deviné/inventé.
+
+### 19. CORS : non pertinent pour de simples balises `<img>`
+
+**Décision** : ne pas configurer de proxy ni de gestion CORS particulière pour charger les images Unsplash/randomuser.me.
+**Pourquoi** : les en-têtes CORS ne s'appliquent qu'aux requêtes JS qui lisent le contenu binaire (`fetch`, `canvas.toDataURL`, etc.). Une balise `<img src="https://...">` affiche l'image sans jamais déclencher de vérification CORS, quel que soit le serveur distant — vérifié en pratique en chargeant l'app en prod avec ces URLs (voir AUDIT.md, session du 2026-09-07).
+
+### 20. Assignation cuisine/cuisinier : méthode déterministe pour garantir zéro stéréotype
+
+**Décision** : plutôt que d'assigner une cuisine à chaque nom "à la main" (risque de biais inconscient dans un sens ou dans l'autre), la liste de 45 noms a été composée sans intention ethnique, puis la cuisine de chacun a été assignée par une formule déterministe `cuisine[(index × 4) mod 9]` qui garantit exactement 5 cuisiniers par cuisine (45 ÷ 9) tout en décorrélant totalement la position dans la liste de la cuisine assignée. Les quelques coïncidences générées par cette formule (nom à consonance donnée + cuisine associée dans l'imaginaire courant) ont ensuite été identifiées manuellement et permutées avec un autre cuisinier pour les éliminer complètement.
+**Pourquoi cette méthode plutôt qu'une curation 100% manuelle** : une assignation entièrement manuelle aurait pu sur-corriger dans l'autre sens (inverser systématiquement, ce qui est aussi une forme de stéréotype scénarisé) ou sous-corriger par fatigue sur les derniers profils. La méthode déterministe + correction ciblée des seules coïncidences repérées donne un résultat vérifiable et reproductible.
+**Chaque bio raconte un parcours, pas une origine** : formation professionnelle, mentorat, voyage, mariage, reconversion — jamais une hypothèse d'origine ethnique du cuisinier. Voir AUDIT.md pour la vérification sur 5 profils tirés au hasard.
+
+### 21. CartoDB Positron re-testé, toujours verrouillé — Esri Light Gray Canvas reconduit
+
+**Décision** : la consigne de cette session redemandait explicitement des tuiles CartoDB Positron. Retesté (`curl` sur une tuile réelle) : toujours un filigrane "API KEY REQUIRED" incrusté dans l'image (confirmé visuellement, pas juste un code HTTP). La solution Esri "Light Gray Canvas" mise en place en session 2 (gratuite, sans clé, esthétique équivalente) est donc reconduite sans changement.
+**Pourquoi documenté à nouveau** : pour qu'une future itération ne perde pas de temps à retenter CartoDB sans vérifier — la vérification a un coût trivial (une requête `curl`) comparé au risque de livrer une carte avec un filigrane visible en démo.
+
+### 22. Incident : une fork agent a dépassé son périmètre — corrigé en cours de route
+
+**Ce qui s'est passé** : une sous-tâche (fork) a été lancée avec pour instruction stricte de chercher et vérifier des photos Unsplash et d'écrire uniquement `scripts/dish_photos.json`. Parce qu'un fork hérite de tout le contexte de la conversation (donc de la consigne complète des 3 problèmes), il a commencé de sa propre initiative à éditer `worker/types.ts`, `worker/mappers.ts`, `worker/index.ts` et `src/types/index.ts` — un travail qui chevauchait exactement ce que je m'apprêtais à faire moi-même en parallèle.
+**Correction** : dès détection (via `git status` montrant des fichiers modifiés hors du périmètre confié), la fork a reçu l'instruction explicite de tout arrêter, de `git checkout` ses changements sur ces 4 fichiers, et de se recentrer uniquement sur `scripts/dish_photos.json`. Les mêmes changements de schéma/types ont ensuite été refaits moi-même, sans dépendre du travail annulé de la fork.
+**Leçon retenue** : pour une tâche déléguée à une fork avec un périmètre de fichiers strict, il faut vérifier tôt (`git status`) que la fork respecte bien ce périmètre plutôt que d'assumer qu'elle s'y limite — l'héritage complet du contexte est une force (pas besoin de tout réexpliquer) mais aussi un risque de chevauchement si deux agents travaillent le même sujet en parallèle.
+
+### 23. Photo de couverture du cuisinier = premier plat généré, pas une photo dédiée
+
+**Décision** : `cooks.cover_photo_url` est simplement la photo du premier plat assigné à ce cuisinier au moment de la génération du seed, pas une photo "portrait d'ambiance" distincte à sourcer séparément.
+**Pourquoi** : la consigne dit littéralement "Grande photo de couverture = le plat signature du cuisinier" — réutiliser une photo de plat déjà sourcée et vérifiée évite de doubler le volume de recherche d'images (45 photos de couverture supplémentaires) pour un résultat visuellement identique à ce qui était demandé.
+
+### 24. Skeleton par image individuelle (`ProgressiveImage`), pas seulement par carte entière
+
+**Décision** : ajout d'un composant `ProgressiveImage` (pulse de fond tant que `onLoad` n'a pas fourni, fade-in ensuite) utilisé pour chaque photo de plat/couverture, en plus des skeletons de carte entière déjà existants (`CookCardSkeletonGrid`, `DishCardSkeleton`).
+**Pourquoi** : les images Unsplash sont chargées depuis un CDN externe (latence variable, hors du contrôle de l'app) alors que les données JSON de l'API D1 répondent en quelques ms — sans ce skeleton par image, l'utilisateur verrait le texte de la carte apparaître instantanément suivi d'un flash blanc/vide le temps que l'image se charge, ce qui est visuellement moins soigné qu'un pulse cohérent.

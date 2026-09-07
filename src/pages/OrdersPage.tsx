@@ -52,8 +52,8 @@ export function OrdersPage() {
                 className="flex gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-terracotta-50"
               >
                 <img
-                  src={order.cookAvatarUrl}
-                  alt={order.cookName}
+                  src={order.dishPhotoUrl}
+                  alt={order.dishName}
                   className="h-14 w-14 shrink-0 rounded-xl object-cover"
                 />
                 <div className="min-w-0 flex-1">

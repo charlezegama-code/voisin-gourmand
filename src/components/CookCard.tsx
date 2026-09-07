@@ -5,21 +5,10 @@ import { StarRating } from "./StarRating";
 import { Badge } from "./Badge";
 import { formatDistance } from "../lib/geo";
 import { CuisineIcon } from "../lib/cuisineIcons";
+import { ProgressiveImage } from "./ProgressiveImage";
 import type { CookListItem } from "../lib/api";
 
 const MotionLink = motion.create(Link);
-
-const GRADIENTS = [
-  "from-terracotta-400 to-terracotta-600",
-  "from-sage-400 to-sage-600",
-  "from-terracotta-500 via-terracotta-500 to-sage-600",
-];
-
-function gradientFor(id: string) {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
-  return GRADIENTS[hash % GRADIENTS.length];
-}
 
 interface CookCardProps {
   cook: CookListItem;
@@ -35,14 +24,15 @@ export function CookCard({ cook, distanceKm }: CookCardProps) {
       transition={{ type: "spring", stiffness: 400, damping: 28 }}
       className="block overflow-hidden rounded-3xl bg-white shadow-[0_2px_10px_-2px_rgba(43,33,25,0.12)] ring-1 ring-terracotta-50"
     >
-      <div className={`relative flex h-32 items-center justify-center bg-gradient-to-br ${gradientFor(cook.id)}`}>
-        <CuisineIcon cuisine={cook.specialty} className="absolute -right-3 -top-3 h-24 w-24 text-white/15" strokeWidth={1.25} />
-        <img
-          src={cook.avatarUrl}
+      <div className="relative h-36">
+        <ProgressiveImage
+          src={cook.coverPhotoUrl}
           alt=""
-          className="h-16 w-16 rounded-full object-cover ring-4 ring-white/90"
+          wrapperClassName="absolute inset-0"
+          className="h-full w-full object-cover"
           loading="lazy"
         />
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/55 to-transparent" />
 
         <div className="absolute left-2.5 top-2.5 flex gap-1.5">
           {cook.isNew && <Badge tone="new">Nouveau</Badge>}
@@ -55,9 +45,16 @@ export function CookCard({ cook, distanceKm }: CookCardProps) {
             </Badge>
           </div>
         )}
+
+        <img
+          src={cook.avatarUrl}
+          alt=""
+          className="absolute -bottom-4 left-3 h-11 w-11 rounded-full object-cover ring-[3px] ring-white shadow-md"
+          loading="lazy"
+        />
       </div>
 
-      <div className="space-y-1.5 p-3.5">
+      <div className="space-y-1.5 p-3.5 pt-6">
         <h3 className="truncate text-[15px] font-bold leading-tight text-ink">{cook.name}</h3>
         <p className="flex items-center gap-1 truncate text-xs text-ink/55">
           <CuisineIcon cuisine={cook.specialty} className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />

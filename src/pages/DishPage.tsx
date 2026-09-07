@@ -6,7 +6,7 @@ import { useAsync } from "../hooks/useAsync";
 import { fetchDishDetail, placeOrder, ApiError } from "../lib/api";
 import { LoadingState } from "../components/LoadingState";
 import { ErrorState } from "../components/ErrorState";
-import { CuisineIcon } from "../lib/cuisineIcons";
+import { ProgressiveImage } from "../components/ProgressiveImage";
 
 export function DishPage() {
   const { id = "" } = useParams();
@@ -55,9 +55,15 @@ export function DishPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="relative flex h-52 items-center justify-center bg-gradient-to-br from-terracotta-300 via-terracotta-400 to-terracotta-600"
+            className="relative h-56"
           >
-            <CuisineIcon cuisine={data.dish.category} className="h-20 w-20 text-white drop-shadow-sm" strokeWidth={1.25} />
+            <ProgressiveImage
+              src={data.dish.photoUrl}
+              alt=""
+              wrapperClassName="absolute inset-0"
+              className="h-full w-full object-cover"
+            />
+            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/50 to-transparent" />
           </motion.div>
 
           <div className="px-4 pt-4">

@@ -58,7 +58,7 @@ export function OrderConfirmPage() {
         className="w-full max-w-sm rounded-3xl bg-white p-4 text-left shadow-sm ring-1 ring-terracotta-50"
       >
         <div className="flex items-center gap-3">
-          <img src={cook.avatarUrl} alt={cook.name} className="h-12 w-12 rounded-xl object-cover" />
+          <img src={order.dishPhotoUrl} alt={order.dishName} className="h-12 w-12 rounded-xl object-cover" />
           <div className="min-w-0 flex-1">
             <p className="truncate font-semibold text-ink">{order.dishName}</p>
             <p className="truncate text-xs text-ink/50">chez {cook.name}</p>

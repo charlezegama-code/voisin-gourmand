@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
-import { CuisineIcon } from "../lib/cuisineIcons";
+import { ProgressiveImage } from "./ProgressiveImage";
 import type { Dish } from "../types";
 
 const MotionLink = motion.create(Link);
@@ -19,9 +19,13 @@ export function DishCard({ dish }: { dish: Dish }) {
         soldOut ? "opacity-55" : ""
       }`}
     >
-      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-terracotta-100 to-terracotta-200">
-        <CuisineIcon cuisine={dish.category} className="h-7 w-7 text-terracotta-600" strokeWidth={1.75} />
-      </div>
+      <ProgressiveImage
+        src={dish.photoUrl}
+        alt=""
+        wrapperClassName="h-16 w-16 shrink-0 rounded-xl"
+        className="h-16 w-16 object-cover"
+        loading="lazy"
+      />
       <div className="min-w-0 flex-1">
         <h4 className="truncate text-sm font-bold text-ink">{dish.name}</h4>
         <p className="truncate text-xs text-ink/55">{dish.description}</p>
