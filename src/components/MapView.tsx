@@ -7,8 +7,14 @@ import { PARIS_CENTER } from "../lib/geo";
 import { StarRating } from "./StarRating";
 import type { CookListItem } from "../lib/api";
 
+// Couleur d'anneau du pin = statut du cuisinier (fonctionnalité existante, conservée).
+// Une légende discrète en bas de carte explique ce code couleur — voir <MapLegend>.
+const RING_DEFAULT = "#c45a33"; // terracotta — disponible normalement
+const RING_NEW = "#4a7c59"; // sage — nouveau sur la plateforme
+const RING_SOLDOUT = "#9a8f85"; // gris — complet aujourd'hui
+
 function cookIcon(cook: CookListItem, index: number) {
-  const ring = cook.soldOutToday ? "#9a8f85" : cook.isNew ? "#4a7c59" : "#c45a33";
+  const ring = cook.soldOutToday ? RING_SOLDOUT : cook.isNew ? RING_NEW : RING_DEFAULT;
   const delay = Math.min(index * 45, 900);
   return divIcon({
     className: "",
@@ -40,10 +46,30 @@ interface MapViewProps {
   center?: [number, number];
 }
 
+function MapLegend() {
+  const items: { color: string; label: string }[] = [
+    { color: RING_DEFAULT, label: "Disponible" },
+    { color: RING_NEW, label: "Nouveau" },
+    { color: RING_SOLDOUT, label: "Complet" },
+  ];
+
+  return (
+    <div className="absolute bottom-2.5 left-1/2 z-[1000] flex -translate-x-1/2 items-center gap-3 rounded-full bg-white/95 px-3.5 py-1.5 text-[10px] font-medium text-ink/70 shadow-md ring-1 ring-black/5">
+      {items.map((item) => (
+        <span key={item.label} className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
+          {item.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export function MapView({ cooks, center }: MapViewProps) {
   const mapCenter: [number, number] = center ?? [PARIS_CENTER.lat, PARIS_CENTER.lng];
 
   return (
+    <div className="relative h-full w-full">
     <MapContainer center={mapCenter} zoom={13} scrollWheelZoom className="h-full w-full" attributionControl={true}>
       {/* Fond de carte clair et épuré, gratuit et sans clé API (Esri Light Gray Canvas) */}
       <TileLayer
@@ -88,5 +114,7 @@ export function MapView({ cooks, center }: MapViewProps) {
         </Marker>
       ))}
     </MapContainer>
+    <MapLegend />
+    </div>
   );
 }
