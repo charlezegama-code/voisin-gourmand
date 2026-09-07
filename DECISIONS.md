@@ -154,3 +154,36 @@ Ce fichier documente les choix pris seul pendant le développement (mode autonom
 
 **Décision** : ajout d'un composant `ProgressiveImage` (pulse de fond tant que `onLoad` n'a pas fourni, fade-in ensuite) utilisé pour chaque photo de plat/couverture, en plus des skeletons de carte entière déjà existants (`CookCardSkeletonGrid`, `DishCardSkeleton`).
 **Pourquoi** : les images Unsplash sont chargées depuis un CDN externe (latence variable, hors du contrôle de l'app) alors que les données JSON de l'API D1 répondent en quelques ms — sans ce skeleton par image, l'utilisateur verrait le texte de la carte apparaître instantanément suivi d'un flash blanc/vide le temps que l'image se charge, ce qui est visuellement moins soigné qu'un pulse cohérent.
+
+---
+
+## 2026-09-07 (session 4) — Logo officiel, onboarding, nettoyage profils, légende carte
+
+### 25. Logo : dérivation par downscale uniquement, pas de re-padding
+
+**Décision** : le fichier fourni (1024x1024, maison+cuillère terracotta sur fond crème) est sauvegardé tel quel dans `public/logo.png` comme source unique de vérité. Toutes les icônes (64/192/512, favicons 16/32) sont dérivées par redimensionnement LANCZOS à la baisse uniquement — jamais d'upscale d'une version déjà réduite.
+**Analyse de marge faite avant de générer quoi que ce soit** : mesure par script (détection du contenu non-crème sur les pixels) montre que l'icône occupe ~67% de largeur et ~51% de hauteur, avec une marge de ~16-24% de chaque côté — largement dans la zone de sécurité recommandée pour les icônes "maskable" (contenu important dans le cercle inscrit à 80% du canevas). Conclusion : pas besoin de repadder pour les variantes maskable, le fichier fourni est déjà bien formaté comme une icône d'app standard.
+**Pourquoi ne pas juste régénérer avec Pillow comme avant** : la consigne fournit un logo officiel de marque à utiliser tel quel — dessiner une nouvelle icône programmatique irait à l'encontre de l'objectif (cohérence de marque), même si esthétiquement proche.
+
+### 26. Écran de démarrage : composant applicatif plutôt que compter uniquement sur le splash natif PWA
+
+**Décision** : ajout d'un `<SplashScreen>` affiché ~900ms au montage de `App.tsx`, en plus (pas à la place) des icônes de manifest qui pilotent le splash natif généré par l'OS lors d'une vraie installation PWA.
+**Pourquoi** : le splash natif Android/Chrome ne s'affiche QUE si l'app a été installée sur l'écran d'accueil et relancée depuis là — dans un contexte de démo/pitch où l'app sera très probablement montrée dans un onglet de navigateur classique (pas installée), ce splash natif ne serait jamais vu. Un composant applicatif garantit le moment de marque dans TOUS les scénarios de démo.
+**Bug trouvé et corrigé pendant l'implémentation** : la légende de la carte (`z-[1000]`, imposé par les panneaux Leaflet) transperçait le splash (`z-50` initialement) car Leaflet utilise des z-index très élevés en interne. Le splash et l'onboarding sont passés à `z-[9999]`/`z-[9998]` pour rester strictement au-dessus de tout composant tiers piloté par une librairie externe.
+
+### 27. Onboarding : overlay contrôlé par état React, pas une route
+
+**Décision** : le tutoriel n'est PAS une route react-router (`/onboarding`) mais un composant affiché conditionnellement par-dessus toute l'app depuis `App.tsx`, piloté par un state local + `localStorage`.
+**Pourquoi** : en tant que route, revenir en arrière (bouton retour du navigateur) depuis l'onboarding poserait la question de "vers quoi ?" et le lien "Revoir le tutoriel" depuis Profil devrait naviguer puis revenir — plus de complexité pour un gain nul. En overlay contrôlé par state + `OnboardingContext` (fourni par `App.tsx`, consommé par `ProfilePage`), n'importe quel écran peut déclencher le tutoriel sans jongler avec l'historique de navigation.
+
+### 28. Nettoyage des photos de cuisiniers : méthode reproductible, pas un jugement au fil de l'eau
+
+**Décision** : les 45 portraits actuellement utilisés ont été téléchargés et assemblés en planche-contact (6 colonnes, labels avec le nom de chaque cuisinier) pour une relecture visuelle systématique en un seul passage, plutôt que de rouvrir chaque profil un par un dans l'app.
+**Critères d'exclusion appliqués** (repris de la consigne) : pouce levé/geste réseau social, réaction exagérée (bouche grande ouverte, choquée), visage caché ou de profil marqué, pose selfie clairement non professionnelle. Les choix stylistiques neutres (cheveux colorés, noir et blanc artistique, arrière-plan animé) n'ont PAS été traités comme des défauts — seuls les critères explicites de la consigne ont justifié un remplacement, pour éviter une purge excessive qui uniformiserait artificiellement les profils.
+**8 profils remplacés sur 45** (~18%) : cohérent avec le taux qu'on peut attendre d'un jeu de portraits stock générique pas spécifiquement curé pour un usage "profil professionnel vérifié". Détail dans le commit `fix(cuisiniers)`.
+**Implémentation technique** : `avatarOverride` optionnel sur les cuisiniers concernés dans `gen_seed.mjs`, plutôt que de réordonner ou modifier le compteur séquentiel — garantit que les 37 profils non concernés gardent EXACTEMENT la même photo qu'avant (aucun effet de bord en cascade).
+
+### 29. Pins de carte : légende ajoutée, fonctionnalité de statut conservée
+
+**Décision** : vérifié dans `MapView.tsx` que la couleur d'anneau des pins n'est pas arbitraire (`cook.soldOutToday` → gris, `cook.isNew` → vert, sinon terracotta). Conformément à la consigne ("si ça correspond à un statut voulu, ajoute une légende plutôt que supprimer"), la fonctionnalité est conservée et une légende discrète (pill blanche, 3 puces de couleur + libellé) est ajoutée en bas de la carte, au-dessus de l'attribution Leaflet.
+**Détail technique** : `z-[1000]` sur la légende pour rester au-dessus des tuiles/contrôles Leaflet (qui utilisent aussi des z-index élevés en interne) — c'est ce même z-index qui a révélé le bug de superposition avec le splash screen (décision n°26).

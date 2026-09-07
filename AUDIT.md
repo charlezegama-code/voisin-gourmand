@@ -175,3 +175,72 @@ Tirage aléatoire reproductible (`random.seed(42)`) sur les 45 profils de `scrip
 - **CartoDB Positron redemandé par la consigne reste indisponible sans clé** (re-vérifié cette session, filigrane "API KEY REQUIRED" toujours présent) — Esri Light Gray Canvas reste la solution en place, visuellement proche mais pas identique à ce qui était nommé dans la consigne.
 - **Dépendance à deux services tiers gratuits non contractuels** (Unsplash CDN, randomuser.me) : aucune garantie de disponibilité à long terme contrairement à des images stockées en propre — acceptable pour une démo de pitch, pas pour un produit en prod (voir aussi la limite déjà documentée sur R2/upload de vraies photos par les cuisiniers).
 - **Portraits non liés sémantiquement au genre du prénom au-delà de l'homme/femme binaire choisi manuellement** : l'attribution homme/femme par prénom a été faite au jugé pour 45 noms, sans vérification systématique — un prénom mixte ou peu familier pourrait avoir reçu un genre de portrait "au hasard" plutôt qu'un choix réfléchi. Impact mineur pour une démo, mais worth noting.
+
+---
+
+## Mise à jour — 2026-09-07 (session 4) : logo officiel, onboarding, profil, nettoyage photos, légende carte
+
+### 1. Le logo apparaît-il bien partout (header, favicon, manifest, splash) ?
+
+**Oui, vérifié à chaque emplacement, pas juste supposé :**
+
+- **Header** : `AppHeader` (Accueil, Recherche, Commandes, Profil) charge `/icons/icon-64.png`, régénéré depuis le logo officiel — capture d'écran prise sur les 4 écrans, logo visible et net partout.
+- **Favicon** : `index.html` déclare `favicon-32x32.png`, `favicon-16x16.png` et un `favicon.png` de repli, tous dérivés du logo par downscale. Fichier `public/favicon-32x32.png` inspecté visuellement (`Read` sur le PNG) : forme maison/cuillère reconnaissable même à 32px.
+- **Manifest PWA** : `dist/manifest.webmanifest` inspecté après build — les 4 icônes (192/512 + variantes maskable) pointent vers les fichiers régénérés ; contenu binaire vérifié en prod par téléchargement direct (`curl` sur `/icons/icon-192.png` en production, taille de fichier identique à la version locale).
+- **Splash** : nouveau composant `SplashScreen`, capturé en local ET en production (`https://voisin-gourmand.synagogue.workers.dev`) — logo centré, aucune fuite visuelle d'un autre composant par-dessus (un bug de superposition avec la légende de carte a été trouvé et corrigé pendant cette session — voir DECISIONS.md #26).
+
+Aucune trace de l'ancienne icône "VG" dessinée programmatiquement n'a été retrouvée (`grep` sur le code : zéro référence texte "VG", et tous les fichiers PNG servant d'icônes ont été régénérés depuis le nouveau logo).
+
+### 2. L'onboarding fonctionne-t-il de bout en bout, et est-il re-déclenchable ?
+
+**Oui, testé de bout en bout en local ET en production, captures d'écran à chaque étape :**
+
+1. Premier chargement → splash (~900ms) → onboarding écran 1 ("Trouvez un cuisinier...", icône loupe) ✅
+2. "Suivant" → écran 2 ("Commandez votre plat", icône panier), pagination sur le 2e point ✅
+3. "Suivant" → écran 3 ("Récupérez votre repas", icône poignée de main), bouton devenu "Commencer" ✅
+4. "Commencer" → navigation vers l'accueil (la carte), `localStorage` marqué → rechargement de la page ne réaffiche PAS l'onboarding (vérifié) ✅
+5. Depuis Profil → "Revoir le tutoriel" → l'onboarding réapparaît immédiatement depuis l'écran 1, sans recharger la page ✅
+6. "Passer" (testé séparément) → navigation directe vers l'accueil, quel que soit l'écran courant ✅
+
+### 3. Le profil utilisateur a-t-il une vraie photo ?
+
+**Oui** — remplacé l'icône silhouette générique par un portrait `randomuser.me` (`men/91.jpg`, non réutilisé ailleurs dans les 45 cuisiniers), même traitement visuel (rond, ombre, ring blanc) que les avatars de cuisiniers. Vérifié visuellement sur la capture d'écran de l'écran Profil.
+
+### 4. Combien de photos de cuisiniers remplacées, et pourquoi ?
+
+**8 sur 45** (Diego Herrera, Kwame Osei, Moussa Traoré, Salma Bakr, Valentine Roussel, Chloé Petit, Aïcha Ndiaye, Isabelle Fabre) — planche-contact complète des 45 portraits construite et relue systématiquement (pas un survol rapide dans l'app). Motifs de remplacement, un par un :
+
+| Cuisinier | Problème repéré |
+|---|---|
+| Diego Herrera | Pouce levé, expression exagérée façon réseau social |
+| Kwame Osei | Pose "main sur la tempe" artificielle, peu crédible |
+| Moussa Traoré | Même pose artificielle que Kwame Osei |
+| Salma Bakr | Main devant une partie du visage, cadrage selfie |
+| Valentine Roussel | Réaction exagérée (bouche grande ouverte, choquée) |
+| Chloé Petit | Ne regarde pas l'objectif, cheveux masquant le visage |
+| Aïcha Ndiaye | Réaction exagérée (bouche ouverte, main près du visage) |
+| Isabelle Fabre | Boit avec une paille, moue façon "duck face" |
+
+Remplacements choisis parmi de nouveaux numéros `randomuser.me` (hors des 45 déjà utilisés, donc aucun doublon introduit), eux-mêmes relus sur planche-contact avant sélection finale. Les 37 autres profils n'ont **pas** été touchés (vérifié : même URL avant/après pour Karim Belkacem, Omar Haddad, Amina Benali pris en échantillon).
+
+### 5. Qu'as-tu fait des pins de carte, et pourquoi ?
+
+**Conservé le code couleur, ajouté une légende** — pas supprimé. Vérification dans `MapView.tsx` : la couleur d'anneau (terracotta/vert/gris) correspond bien à un statut réel (`soldOutToday`/`isNew`/défaut), ce n'était pas arbitraire. Une légende discrète (pill blanche semi-transparente, 3 puces de couleur + libellé : Disponible / Nouveau / Complet) a été ajoutée en bas de la carte, au-dessus de l'attribution Leaflet — conforme à l'instruction explicite de préférer une légende à une suppression de fonctionnalité.
+
+### 6. Build et déploiement OK ? URL finale ?
+
+- `npm run build` : ✅ sans erreur (revérifié après le découpage des commits, pas seulement avant).
+- `npm run typecheck:worker` : ✅ sans erreur.
+- `npx oxlint` : ✅ 0 erreur (3 avertissements pré-existants acceptés, inchangés).
+- D1 locale et distante re-seedées avec les 8 nouvelles URLs de portrait.
+- `wrangler deploy` : ✅ réellement exécuté, nouvelle version publiée, assets modifiés (logo, favicons, icônes, JS/CSS) confirmés uploadés.
+- Vérifié en production par navigateur piloté : splash → onboarding complet (3 écrans, Suivant × 2, Commencer) → accueil avec carte, légende visible, pins avec les nouvelles photos.
+- 5 commits séparés et poussés sur GitHub : `feat(logo)`, `feat(onboarding)`, `feat(profil)`, `fix(cuisiniers)`, `feat(carte)` — dans cet ordre pour que chaque commit reste cohérent isolément (ex. le commit onboarding ajoute le bouton "Revoir le tutoriel" sur l'icône générique existante, la vraie photo arrive au commit suivant).
+
+**URL finale à tester : https://voisin-gourmand.synagogue.workers.dev**
+
+### 7. Note de confiance finale pour jeudi : **9/10**
+
+**Ce qui justifie ce score** : les 5 points de cette session ferment des trous de crédibilité très visibles à l'œil d'un jury — un logo de marque cohérent (pas un badge "VG" bricolé), un onboarding qui donne tout de suite le mode d'emploi de l'app (standard dans toute app foodtech réelle), un profil qui ne détonne plus avec le reste (photos partout, plus une seule icône générique dans toute l'app), des photos de cuisiniers qui ne cassent plus l'illusion de "vrais profils vérifiés", et une carte dont le code couleur est enfin lisible sans qu'on ait à deviner. Le fait de pouvoir re-déclencher l'onboarding depuis Profil est un vrai plus pour l'oral : ça permet de montrer ce flow à la demande du jury sans recharger la page en direct.
+
+**Pourquoi pas 10** : les limites déjà connues (nom de domaine `workers.dev`, historique de commandes non scopé par utilisateur, dépendance à des CDN tiers gratuits, quelques photos de plats approximatives faute de mieux sur Unsplash) restent vraies et non résolues — ce sont des choix de scope assumés pour une démo gratuite en quelques sessions, pas des oublis. Un jury qui pousserait sur la robustesse technique (tests automatisés, montée en charge, vraie authentification) trouverait les mêmes limites qu'aux audits précédents.
