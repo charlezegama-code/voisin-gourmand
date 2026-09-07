@@ -44,7 +44,7 @@ export function DishCardSkeleton() {
 export function ProfileHeaderSkeleton() {
   return (
     <div className="px-4">
-      <Pulse className="h-48 w-full rounded-3xl" />
+      <Pulse className="h-64 w-full rounded-3xl" />
       <div className="mt-4 space-y-2">
         <Pulse className="h-5 w-1/2" />
         <Pulse className="h-3 w-1/3" />
