@@ -13,6 +13,7 @@ export interface Cook {
   id: string;
   name: string;
   avatarUrl: string;
+  coverPhotoUrl: string;
   bio: string;
   specialty: CuisineType;
   rating: number;
@@ -31,6 +32,7 @@ export interface Dish {
   cookId: string;
   name: string;
   description: string;
+  photoUrl: string;
   price: number;
   quantityAvailable: number;
   pickupWindow: string;
@@ -58,6 +60,7 @@ export interface Order {
   id: string;
   dishId: string;
   dishName: string;
+  dishPhotoUrl: string;
   cookId: string;
   cookName: string;
   cookAvatarUrl: string;

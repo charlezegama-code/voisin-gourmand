@@ -7,6 +7,7 @@ export interface CookRow {
   id: string;
   name: string;
   avatar_url: string;
+  cover_photo_url: string;
   bio: string;
   specialty: string;
   rating: number;
@@ -25,6 +26,7 @@ export interface DishRow {
   cook_id: string;
   name: string;
   description: string;
+  photo_url: string;
   price: number;
   quantity_available: number;
   pickup_window: string;
@@ -44,6 +46,7 @@ export interface OrderRow {
   id: string;
   dish_id: string;
   dish_name: string;
+  dish_photo_url: string;
   cook_id: string;
   cook_name: string;
   cook_avatar_url: string;

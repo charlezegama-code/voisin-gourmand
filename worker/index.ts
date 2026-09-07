@@ -119,12 +119,13 @@ app.post("/api/orders", async (c) => {
 
   await c.env.DB.batch([
     c.env.DB.prepare(
-      `INSERT INTO orders (id, dish_id, dish_name, cook_id, cook_name, cook_avatar_url, price, quantity, total_price, status, pickup_window, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirme', ?, ?)`
+      `INSERT INTO orders (id, dish_id, dish_name, dish_photo_url, cook_id, cook_name, cook_avatar_url, price, quantity, total_price, status, pickup_window, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirme', ?, ?)`
     ).bind(
       orderId,
       dishRow.id,
       dishRow.name,
+      dishRow.photo_url,
       cookRow.id,
       cookRow.name,
       cookRow.avatar_url,
@@ -146,6 +147,7 @@ app.post("/api/orders", async (c) => {
         id: orderId,
         dishId: dishRow.id,
         dishName: dishRow.name,
+        dishPhotoUrl: dishRow.photo_url,
         cookId: cookRow.id,
         cookName: cookRow.name,
         cookAvatarUrl: cookRow.avatar_url,
