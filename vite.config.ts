@@ -10,7 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.png"],
+      includeAssets: ["favicon.png", "favicon-16x16.png", "favicon-32x32.png", "logo.png"],
       manifest: {
         id: "/",
         name: "Voisin Gourmand",
