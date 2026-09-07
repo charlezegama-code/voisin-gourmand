@@ -30,8 +30,9 @@ App de démo (pitch business school) mettant en relation des cuisiniers amateurs
 │   ├── schema.sql        # Schéma des 4 tables (cooks, dishes, reviews, orders)
 │   └── seed.sql           # 45 cuisiniers fictifs, ~78 plats, 90 avis, 5 commandes de démo
 ├── scripts/
-│   ├── gen_seed.mjs       # Génère db/schema.sql + db/seed.sql
-│   └── gen_assets.py      # Génère les icônes PWA + avatars (initiales, aucune vraie photo)
+│   ├── gen_seed.mjs       # Génère db/schema.sql + db/seed.sql (photos Unsplash/randomuser.me incluses)
+│   ├── dish_photos.json   # 45 URLs Unsplash vérifiées (plat -> photo), consommé par gen_seed.mjs
+│   └── gen_assets.py      # Génère uniquement les icônes PWA (favicon, icon-*.png)
 ├── wrangler.toml         # Config Cloudflare Workers (D1 binding + assets statiques)
 ├── DECISIONS.md          # Décisions techniques prises de façon autonome
 └── AUDIT.md              # Bilan honnête : ce qui marche, ce qui est simulé, limites
@@ -74,7 +75,7 @@ La démo actuelle est déjà déployée à **https://voisin-gourmand.synagogue.w
 
 ## Comptes / données de démo
 
-Toutes les données (cuisiniers, plats, avis, commandes) sont **fictives**, générées par `scripts/gen_seed.mjs`. Aucune vraie personne, aucune vraie photo — les avatars sont des initiales sur fond coloré générées par `scripts/gen_assets.py` (Pillow).
+Toutes les données (cuisiniers, plats, avis, commandes) sont **fictives**, générées par `scripts/gen_seed.mjs`. Les portraits viennent de [randomuser.me](https://randomuser.me) — un service de démo qui associe des photos de modèles stock (personnes réelles ayant consenti à un usage stock, mais sans lien avec les faux noms/bios générés ici) à des profils factices ; les photos de plats viennent d'Unsplash (`scripts/dish_photos.json`, 45 URLs individuellement vérifiées). Les noms et cuisines sont volontairement décorrélés de toute origine ethnique supposée — voir `DECISIONS.md` §20.
 
 Pour régénérer les données de démo (autre répartition, plus de cuisiniers, etc.) :
 

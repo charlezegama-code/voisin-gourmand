@@ -122,3 +122,56 @@ Chaque navigation a atterri sur la fiche exacte cliquée, aucune redirection ver
 **Ce qui justifie la hausse** : le point faible le plus visible de la première version — un design "qui fait le café du coin plutôt que la startup" — est résolu. La carte dense sur 45 cuisiniers/20 arrondissements rend l'app crédible visuellement dès l'ouverture (avant même d'interagir), les animations (pins en cascade, transitions de page, check de confirmation) donnent une sensation d'app native soignée, et le bug de navigation signalé a été activement recherché, non retrouvé, et durci quand même par prudence plutôt que balayé.
 
 **Pourquoi pas 10** : le point n°2 de l'audit précédent (nom de domaine `workers.dev`, historique de commandes non scopé par utilisateur) reste vrai et non résolu — ce sont des limites structurelles de la démo, pas des défauts corrigibles en une session sans compte payant/backend d'authentification. Un jury technique pointilleux pourrait aussi remarquer l'absence de tests automatisés.
+
+---
+
+## Mise à jour — 2026-09-07 : vraies photos partout + élimination des stéréotypes nom/cuisine
+
+### 1. Chaque cuisinier a-t-il une vraie photo portrait ? Chaque plat a-t-il une vraie photo ?
+
+**Oui aux deux, vérifié mécaniquement, pas juste visuellement.**
+
+- 45 cuisiniers, 45 portraits `randomuser.me` distincts (compteur séparé hommes/femmes dans `scripts/gen_seed.mjs`, aucune répétition — vérifié : 22 URLs `.../men/1.jpg` à `.../men/22.jpg`, 23 URLs `.../women/1.jpg` à `.../women/23.jpg`).
+- 78 plats au total (1 à 5 par cuisinier), chacun pointant vers une des 45 photos Unsplash uniques de `scripts/dish_photos.json` (un plat nommé identiquement chez deux cuisiniers différents partage la même photo — comportement voulu, voir DECISIONS.md #18, pas un plat sans photo).
+- **Vérification indépendante des 45 URLs Unsplash** : boucle `curl -s -o /dev/null -w "%{http_code}"` sur chacune des 45 entrées de `dish_photos.json` → **45/45 retournent 200**, `content-type: image/jpeg` (voir commande exécutée dans cette session, hors du rapport de l'agent de recherche — un second contrôle indépendant, pas une confiance aveugle dans son rapport).
+- **Vérification visuelle en prod** (navigateur piloté, capture d'écran) : carte avec 45 pins-portraits distincts, grille de recherche avec photos de plats réelles et reconnaissables (pizza, nems, riz au poisson, salade méditerranéenne...), fiche cuisinier et fiche plat avec hero photo + dégradé, écran de commande et historique avec photo du plat commandé. Aucune icône générique, aucun fond coloré uni, aucune initiale restante nulle part dans l'app déployée.
+- Aucune image stockée dans le repo : tout est chargé par URL directe depuis Unsplash/randomuser.me (voir DECISIONS.md #18) — confirmé par `performance.getEntriesByType('resource')` en prod : 45 ressources externes chargées, 0 requête réseau en échec (`network requests --status 400-599` → aucune capturée).
+
+### 2. Les stéréotypes nom/cuisine sont-ils éliminés ? Vérification sur 5 profils au hasard
+
+Tirage aléatoire reproductible (`random.seed(42)`) sur les 45 profils de `scripts/gen_seed.mjs` :
+
+| Nom | Cuisine assignée | Stéréotype ? |
+|---|---|---|
+| Nadia Haddad | Végétarienne | Non — le végétarisme n'est pas une origine ; nom à consonance arabe sur une catégorie sans lien ethnique |
+| Rami Nassar | Italienne | Non — nom à consonance libanaise sur une cuisine italienne |
+| Karim Belkacem | Française | Non — nom à consonance maghrébine sur une cuisine française (inversion explicite du stéréotype d'origine) |
+| Charlotte Mercier | Africaine | Non — nom à consonance française sur une cuisine africaine |
+| Antoine Bernard | Africaine | Non — nom à consonance française sur une cuisine africaine, bio explique le mariage avec une Sénégalaise |
+
+**5/5 sans corrélation stéréotypée.** Chaque bio associée explique un parcours personnel (mariage, mentorat, voyage, formation, reconversion) plutôt que de supposer une origine ethnique liée au nom — voir les bios complètes dans `scripts/gen_seed.mjs`. Méthode d'assignation détaillée en DECISIONS.md #20 (formule déterministe garantissant 5 cuisiniers par cuisine, puis correction manuelle des rares coïncidences repérées lors d'une relecture complète des 45 paires nom/cuisine).
+
+### 3. Build et déploiement
+
+- `npm run build` : ✅ sans erreur.
+- `npm run typecheck:worker` : ✅ sans erreur.
+- `npx oxlint` : ✅ 0 erreur (3 avertissements pré-existants acceptés, voir session précédente).
+- D1 local et distant re-seedés avec le nouveau schéma (`cooks.cover_photo_url`, `dishes.photo_url`, `orders.dish_photo_url`) et les 45 nouveaux profils — confirmé par `rows_written: 604` sur la base de production.
+- `wrangler deploy` : ✅ réellement exécuté, `Current Version ID` renouvelé, assets re-uploadés (5 fichiers modifiés détectés et poussés).
+- 3 commits Git séparés et poussés sur GitHub : `feat(data)` (photos + données + backend), `feat(animations)` (skeleton de chargement image), `feat(design)` (héros photo, dégradés, overlay portrait) — dans cet ordre pour que chaque commit reste cohérent (le commit design dépend du composant introduit par le commit animations).
+
+**URL finale à tester : https://voisin-gourmand.synagogue.workers.dev**
+
+### 4. Note de confiance : que l'app ressemble à une vraie app foodtech 2026 — **9/10**
+
+**Ce qui justifie ce score** : la transformation visuelle est spectaculaire par rapport à la version précédente — une carte avec 45 vrais visages et une grille avec de vraies photos de plats (pizza napolitaine, nems, biryani, ceviche...) change complètement la perception à l'ouverture. C'est précisément le problème identifié par la consigne ("la bouffe se vend par les yeux") qui est résolu, pas contourné. Les bios personnalisées donnent aussi une épaisseur narrative que peu de démos étudiantes prennent le temps de soigner.
+
+**Pourquoi pas 10** : quelques photos de plats sont des correspondances plausibles mais pas exactes faute de photo Unsplash parfaitement dédiée (Blanquette de veau, Poulet yassa, Mafé poulet, Fattouche, Feijoada — voir la liste de compromis assumés au point 5) ; un jury qui connaît bien ces plats précis pourrait remarquer l'écart. Les portraits randomuser.me, bien que réels, ont un rendu "banque d'images" reconnaissable pour un œil habitué (éclairage studio homogène) plutôt que des photos de profil authentiques — un compromis assumé pour une démo gratuite et instantanée plutôt qu'une génération IA de visages, plus chère et plus ambiguë éthiquement.
+
+### 5. Ce qui reste perfectible
+
+- **5 photos de plats sont des compromis assumés**, faute de correspondance exacte disponible gratuitement sur Unsplash : Blanquette de veau (ragoût de bœuf générique), Poulet yassa (poulet en sauce, sans les tons jaune caractéristiques du citron confit), Mafé poulet (ragoût brun générique), Fattouche (salade crue générique), Feijoada (plat de haricots générique, pas spécifiquement brésilien). Documenté plutôt que caché — voir le rapport de recherche cité dans cette session.
+- **Le "plat signature" en couverture est mécanique** (premier plat généré pour ce cuisinier), pas choisi éditorialement pour être la photo la plus flatteuse — un vrai produit laisserait le cuisinier choisir sa photo de couverture.
+- **CartoDB Positron redemandé par la consigne reste indisponible sans clé** (re-vérifié cette session, filigrane "API KEY REQUIRED" toujours présent) — Esri Light Gray Canvas reste la solution en place, visuellement proche mais pas identique à ce qui était nommé dans la consigne.
+- **Dépendance à deux services tiers gratuits non contractuels** (Unsplash CDN, randomuser.me) : aucune garantie de disponibilité à long terme contrairement à des images stockées en propre — acceptable pour une démo de pitch, pas pour un produit en prod (voir aussi la limite déjà documentée sur R2/upload de vraies photos par les cuisiniers).
+- **Portraits non liés sémantiquement au genre du prénom au-delà de l'homme/femme binaire choisi manuellement** : l'attribution homme/femme par prénom a été faite au jugé pour 45 noms, sans vérification systématique — un prénom mixte ou peu familier pourrait avoir reçu un genre de portrait "au hasard" plutôt qu'un choix réfléchi. Impact mineur pour une démo, mais worth noting.
