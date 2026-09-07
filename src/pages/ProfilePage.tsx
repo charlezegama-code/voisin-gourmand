@@ -1,8 +1,9 @@
-import { User, Receipt, Heart, MapPin, Info, ChevronRight } from "lucide-react";
+import { User, Receipt, Heart, MapPin, Info, ChevronRight, RotateCcw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AppHeader } from "../components/AppHeader";
 import { useAsync } from "../hooks/useAsync";
 import { fetchOrders } from "../lib/api";
+import { useOnboarding } from "../context/OnboardingContext";
 
 const MENU = [
   { icon: Receipt, label: "Mes commandes", to: "/mes-commandes" },
@@ -13,6 +14,7 @@ const MENU = [
 export function ProfilePage() {
   const { data } = useAsync(fetchOrders, []);
   const orderCount = data?.orders.length ?? 0;
+  const { restartOnboarding } = useOnboarding();
 
   return (
     <div className="flex h-full flex-col overflow-y-auto pb-8">
@@ -55,6 +57,14 @@ export function ProfilePage() {
             <ChevronRight className="h-4 w-4 text-ink/30" strokeWidth={2} />
           </Link>
         ))}
+        <button
+          onClick={restartOnboarding}
+          className="flex w-full items-center gap-3 border-t border-terracotta-50 px-4 py-3.5 text-left text-sm font-medium text-ink"
+        >
+          <RotateCcw className="h-4.5 w-4.5 text-terracotta-500" strokeWidth={2} />
+          <span className="flex-1">Revoir le tutoriel</span>
+          <ChevronRight className="h-4 w-4 text-ink/30" strokeWidth={2} />
+        </button>
       </div>
 
       <div className="mx-4 mt-4 flex items-start gap-2.5 rounded-2xl bg-sage-50 p-3.5 text-xs text-sage-800">
