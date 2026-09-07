@@ -73,7 +73,7 @@ const COOKS = [
   { name: "Karim Belkacem", specialty: "Française", gender: "m", bio: "Ancien second de cuisine dans une brasserie du 6e arrondissement, il a gardé le goût des plats mijotés français appris sur le tas." },
   { name: "Ibrahima Diallo", specialty: "Française", gender: "m", bio: "Arrivé à Paris à 19 ans, il est tombé amoureux de la cuisine bourguignonne en travaillant comme commis — aujourd'hui il la cuisine mieux que personne." },
   { name: "Mei Chen", specialty: "Française", gender: "f", bio: "Diplômée d'une école hôtelière lyonnaise, elle a choisi de se spécialiser dans le répertoire classique français plutôt que dans la cuisine de son enfance." },
-  { name: "Diego Herrera", specialty: "Française", gender: "m", bio: "Venu d'Argentine pour un stage à Paris, il ne s'est jamais remis du gratin dauphinois de sa colocataire — il en a fait son métier depuis." },
+  { name: "Diego Herrera", specialty: "Française", gender: "m", avatarOverride: 24, bio: "Venu d'Argentine pour un stage à Paris, il ne s'est jamais remis du gratin dauphinois de sa colocataire — il en a fait son métier depuis." },
 
   // — Italienne (5)
   { name: "Thomas Lefebvre", specialty: "Italienne", gender: "m", bio: "Un été à Bologne chez la famille de son ex a suffi à le convertir aux pâtes fraîches maison — il n'est jamais reparti côté fourneaux." },
@@ -87,13 +87,13 @@ const COOKS = [
   { name: "Julien Marchand", specialty: "Asiatique", gender: "m", bio: "Ancien commis dans un restaurant vietnamien du 13e, il y a appris le pho et les nems qu'il refait aujourd'hui chez lui." },
   { name: "Baptiste Roy", specialty: "Asiatique", gender: "m", bio: "Sa compagne thaïlandaise lui a transmis les bases du curry vert et du pad thaï — il ne cuisine plus que ça depuis." },
   { name: "Camila Santos", specialty: "Asiatique", gender: "f", bio: "Fascinée par la cuisine vietnamienne depuis un voyage à Hanoï, elle a appris les bouillons longue cuisson auprès d'une famille locale." },
-  { name: "Salma Bakr", specialty: "Asiatique", gender: "f", bio: "Formée dans un izakaya parisien pendant deux ans, elle maîtrise les currys et bento japonais du quotidien." },
+  { name: "Salma Bakr", specialty: "Asiatique", gender: "f", avatarOverride: 26, bio: "Formée dans un izakaya parisien pendant deux ans, elle maîtrise les currys et bento japonais du quotidien." },
 
   // — Africaine (5)
   { name: "Antoine Bernard", specialty: "Africaine", gender: "m", bio: "Marié à une Sénégalaise, il a appris le thiéboudienne et le mafé directement de sa belle-mère — sa meilleure professeure." },
   { name: "Hugo Fontaine", specialty: "Africaine", gender: "m", bio: "Deux ans de coopération à Dakar lui ont donné le goût du poulet yassa qu'il cuisine depuis son retour." },
   { name: "Charlotte Mercier", specialty: "Africaine", gender: "f", bio: "Ancienne collègue d'une cheffe ivoirienne, elle a hérité de ses recettes de garba et d'attiéké." },
-  { name: "Valentine Roussel", specialty: "Africaine", gender: "f", bio: "Passionnée par la cuisine ghanéenne depuis un stage humanitaire à Accra, elle prépare un jollof rice qui fait référence dans le quartier." },
+  { name: "Valentine Roussel", specialty: "Africaine", gender: "f", avatarOverride: 27, bio: "Passionnée par la cuisine ghanéenne depuis un stage humanitaire à Accra, elle prépare un jollof rice qui fait référence dans le quartier." },
   { name: "Ravi Kapoor", specialty: "Africaine", gender: "m", bio: "Formé par un chef sénégalais dans un restaurant lyonnais, il perpétue aujourd'hui les recettes ouest-africaines qu'on lui a transmises." },
 
   // — Maghrébine (5)
@@ -104,11 +104,11 @@ const COOKS = [
   { name: "Giulia Renard", specialty: "Maghrébine", gender: "f", bio: "Installée à Paris après plusieurs années à Tunis, elle a rapporté dans ses valises les recettes de sa famille d'adoption tunisienne." },
 
   // — Libanaise (5)
-  { name: "Chloé Petit", specialty: "Libanaise", gender: "f", bio: "Un stage dans un restaurant libanais du 15e lui a donné le goût du mezze — elle en a fait sa spécialité." },
-  { name: "Kwame Osei", specialty: "Libanaise", gender: "m", bio: "Ancien collègue de cuisine d'un chef beyrouthin, il a hérité de ses recettes de fattouche et de kebbé." },
+  { name: "Chloé Petit", specialty: "Libanaise", gender: "f", avatarOverride: 29, bio: "Un stage dans un restaurant libanais du 15e lui a donné le goût du mezze — elle en a fait sa spécialité." },
+  { name: "Kwame Osei", specialty: "Libanaise", gender: "m", avatarOverride: 26, bio: "Ancien collègue de cuisine d'un chef beyrouthin, il a hérité de ses recettes de fattouche et de kebbé." },
   { name: "Elena Blanchard", specialty: "Libanaise", gender: "f", bio: "Fascinée par la cuisine levantine depuis un voyage à Beyrouth, elle prépare un houmous qui fait sa réputation." },
   { name: "Arjun Patel", specialty: "Libanaise", gender: "m", bio: "Formé auprès d'une famille libanaise du quartier, il maîtrise le taboulé et le chawarma maison." },
-  { name: "Moussa Traoré", specialty: "Libanaise", gender: "m", bio: "Ancien cuisinier dans une épicerie fine libanaise, il a appris sur le tas les mezze qu'il propose aujourd'hui." },
+  { name: "Moussa Traoré", specialty: "Libanaise", gender: "m", avatarOverride: 27, bio: "Ancien cuisinier dans une épicerie fine libanaise, il a appris sur le tas les mezze qu'il propose aujourd'hui." },
 
   // — Indienne (5)
   { name: "Camille Rousseau", specialty: "Indienne", gender: "f", bio: "Six mois de voyage en Inde du Nord lui ont donné envie d'apprendre le curry auprès de familles locales — elle ne s'est plus arrêtée." },
@@ -127,8 +127,8 @@ const COOKS = [
   // — Végétarienne (5)
   { name: "Nadia Haddad", specialty: "Végétarienne", gender: "f", bio: "Passée au 100% végétal après un documentaire qui l'a marquée, elle réinvente les classiques réconfortants sans viande." },
   { name: "Léa Dubois", specialty: "Végétarienne", gender: "f", bio: "Ancienne cheffe de cuisine traditionnelle, elle s'est reconvertie au végétarien par conviction il y a cinq ans." },
-  { name: "Aïcha Ndiaye", specialty: "Végétarienne", gender: "f", bio: "Diététicienne de formation, elle a développé des recettes végétariennes équilibrées et gourmandes pour ses voisins." },
-  { name: "Isabelle Fabre", specialty: "Végétarienne", gender: "f", bio: "Convertie au végétarisme depuis dix ans, elle prouve chaque jour qu'un bowl peut être aussi gourmand qu'un plat en sauce." },
+  { name: "Aïcha Ndiaye", specialty: "Végétarienne", gender: "f", avatarOverride: 30, bio: "Diététicienne de formation, elle a développé des recettes végétariennes équilibrées et gourmandes pour ses voisins." },
+  { name: "Isabelle Fabre", specialty: "Végétarienne", gender: "f", avatarOverride: 32, bio: "Convertie au végétarisme depuis dix ans, elle prouve chaque jour qu'un bowl peut être aussi gourmand qu'un plat en sauce." },
   { name: "Noémie Faure", specialty: "Végétarienne", gender: "f", bio: "Formée en cuisine végétale à Londres, elle importe des techniques anglo-saxonnes dans ses recettes parisiennes." },
 ];
 
@@ -208,11 +208,16 @@ function photoFor(dishName) {
 }
 
 // Portraits réels (randomuser.me, gratuit, sans clé) — compteur par genre pour ne jamais répéter une photo.
+// `avatarOverride` (optionnel, sur certains COOKS) remplace un portrait jugé non professionnel après
+// relecture manuelle (pouce levé, duck face, visage caché, réaction exagérée) — voir DECISIONS.md.
+// Le compteur séquentiel avance quand même pour ces cuisiniers afin de ne PAS décaler la photo de
+// tous les cuisiniers suivants dans la liste.
 let manCounter = 1;
 let womanCounter = 1;
-function portraitFor(gender) {
-  if (gender === "m") return `https://randomuser.me/api/portraits/men/${manCounter++}.jpg`;
-  return `https://randomuser.me/api/portraits/women/${womanCounter++}.jpg`;
+function portraitFor(gender, override) {
+  const n = gender === "m" ? manCounter++ : womanCounter++;
+  const folder = gender === "m" ? "men" : "women";
+  return `https://randomuser.me/api/portraits/${folder}/${override ?? n}.jpg`;
 }
 
 const PICKUP_WINDOWS = ["12h00 - 13h30", "12h30 - 14h00", "19h00 - 20h30", "19h30 - 21h00", "18h30 - 20h00"];
@@ -268,7 +273,7 @@ COOKS.forEach((c, i) => {
   const streetNum = 2 + ((i * 7) % 130);
   const isNew = i % 7 === 0 ? 1 : 0;
   const verified = i % 4 === 0 ? 1 : 0;
-  const avatarUrl = portraitFor(c.gender);
+  const avatarUrl = portraitFor(c.gender, c.avatarOverride);
   cookAvatars[id] = avatarUrl;
 
   // 1 à 5 plats par cuisinier (variation volontaire pour des cartes moins uniformes)
