@@ -25,7 +25,7 @@ export function ProfilePage() {
           <User className="h-7 w-7 text-terracotta-500" strokeWidth={2} />
         </div>
         <div className="min-w-0">
-          <h1 className="text-lg font-bold text-ink">Utilisateur démo</h1>
+          <h1 className="text-lg font-bold text-ink">Albert School</h1>
           <p className="text-xs text-ink/50">Membre depuis août 2026 · Paris</p>
         </div>
       </div>
