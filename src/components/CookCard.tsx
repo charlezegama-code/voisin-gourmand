@@ -25,13 +25,15 @@ export function CookCard({ cook, distanceKm }: CookCardProps) {
       className="block overflow-hidden rounded-3xl bg-white shadow-[0_2px_10px_-2px_rgba(43,33,25,0.12)] ring-1 ring-terracotta-50"
     >
       <div className="relative h-36">
-        <ProgressiveImage
-          src={cook.coverPhotoUrl}
-          alt=""
-          wrapperClassName="absolute inset-0"
-          className="h-full w-full object-cover"
-          loading="lazy"
-        />
+        <div className="absolute inset-0">
+          <ProgressiveImage
+            src={cook.coverPhotoUrl}
+            alt=""
+            wrapperClassName="h-full w-full"
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+        </div>
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/55 to-transparent" />
 
         <div className="absolute left-2.5 top-2.5 flex gap-1.5">

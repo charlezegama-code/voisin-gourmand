@@ -49,12 +49,14 @@ export function CookProfilePage() {
             transition={{ duration: 0.3 }}
             className="relative flex h-64 items-end px-4 pb-4"
           >
-            <ProgressiveImage
-              src={data.cook.coverPhotoUrl}
-              alt=""
-              wrapperClassName="absolute inset-0"
-              className="h-full w-full object-cover"
-            />
+            <div className="absolute inset-0">
+              <ProgressiveImage
+                src={data.cook.coverPhotoUrl}
+                alt=""
+                wrapperClassName="h-full w-full"
+                className="h-full w-full object-cover"
+              />
+            </div>
             <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
             <div className="absolute right-3 top-[calc(env(safe-area-inset-top)+0.75rem)] flex gap-1.5">
               {data.cook.isNew && <Badge tone="new">Nouveau</Badge>}

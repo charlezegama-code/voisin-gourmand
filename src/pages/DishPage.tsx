@@ -57,12 +57,14 @@ export function DishPage() {
             transition={{ duration: 0.3 }}
             className="relative h-56"
           >
-            <ProgressiveImage
-              src={data.dish.photoUrl}
-              alt=""
-              wrapperClassName="absolute inset-0"
-              className="h-full w-full object-cover"
-            />
+            <div className="absolute inset-0">
+              <ProgressiveImage
+                src={data.dish.photoUrl}
+                alt=""
+                wrapperClassName="h-full w-full"
+                className="h-full w-full object-cover"
+              />
+            </div>
             <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/50 to-transparent" />
           </motion.div>
 
