@@ -1,13 +1,9 @@
-import { Receipt, Heart, MapPin, Info, ChevronRight, RotateCcw } from "lucide-react";
+import { User, Receipt, Heart, MapPin, Info, ChevronRight, RotateCcw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AppHeader } from "../components/AppHeader";
 import { useAsync } from "../hooks/useAsync";
 import { fetchOrders } from "../lib/api";
 import { useOnboarding } from "../context/OnboardingContext";
-
-// Portrait de démo pour l'utilisateur connecté — même traitement (photo réelle, format rond)
-// que les avatars de cuisiniers, pour rester cohérent avec le reste de l'app.
-const DEMO_USER_AVATAR = "https://randomuser.me/api/portraits/men/91.jpg";
 
 const MENU = [
   { icon: Receipt, label: "Mes commandes", to: "/mes-commandes" },
@@ -25,11 +21,9 @@ export function ProfilePage() {
       <AppHeader title="Profil" />
 
       <div className="mt-2 flex items-center gap-4 px-4">
-        <img
-          src={DEMO_USER_AVATAR}
-          alt="Utilisateur démo"
-          className="h-16 w-16 rounded-full object-cover shadow-md ring-2 ring-white"
-        />
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-terracotta-100 shadow-sm">
+          <User className="h-7 w-7 text-terracotta-500" strokeWidth={2} />
+        </div>
         <div className="min-w-0">
           <h1 className="text-lg font-bold text-ink">Utilisateur démo</h1>
           <p className="text-xs text-ink/50">Membre depuis août 2026 · Paris</p>
