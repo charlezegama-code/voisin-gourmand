@@ -244,3 +244,42 @@ Remplacements choisis parmi de nouveaux numéros `randomuser.me` (hors des 45 d�
 **Ce qui justifie ce score** : les 5 points de cette session ferment des trous de crédibilité très visibles à l'œil d'un jury — un logo de marque cohérent (pas un badge "VG" bricolé), un onboarding qui donne tout de suite le mode d'emploi de l'app (standard dans toute app foodtech réelle), un profil qui ne détonne plus avec le reste (photos partout, plus une seule icône générique dans toute l'app), des photos de cuisiniers qui ne cassent plus l'illusion de "vrais profils vérifiés", et une carte dont le code couleur est enfin lisible sans qu'on ait à deviner. Le fait de pouvoir re-déclencher l'onboarding depuis Profil est un vrai plus pour l'oral : ça permet de montrer ce flow à la demande du jury sans recharger la page en direct.
 
 **Pourquoi pas 10** : les limites déjà connues (nom de domaine `workers.dev`, historique de commandes non scopé par utilisateur, dépendance à des CDN tiers gratuits, quelques photos de plats approximatives faute de mieux sur Unsplash) restent vraies et non résolues — ce sont des choix de scope assumés pour une démo gratuite en quelques sessions, pas des oublis. Un jury qui pousserait sur la robustesse technique (tests automatisés, montée en charge, vraie authentification) trouverait les mêmes limites qu'aux audits précédents.
+
+---
+
+## Mise à jour — 2026-09-08 (session 5) : image dédoublée, profil générique, renommage, logo
+
+### 1. Cause exacte du bug de ligne noire/image dédoublée, et confirmation de la correction
+
+**Cause exacte** (diagnostiquée par mesure DOM en direct, `getBoundingClientRect()`, pas par supposition sur le code) : le composant `ProgressiveImage` impose sa propre classe `relative`, et 3 écrans lui passaient en plus `wrapperClassName="absolute inset-0"`. Tailwind fait gagner `.relative` sur `.absolute` dans l'ordre de son stylesheet généré (indépendamment de l'ordre des classes dans l'attribut `class`), donc "absolute inset-0" était sans effet : le conteneur se dimensionnait à la taille naturelle de l'image (292.5px de haut au lieu des 224px du parent) et débordait. Le dégradé sombre, lui correctement calé sur les 224px réels, s'arrêtait avant la fin de l'image débordante — d'où une rupture nette de luminosité perçue comme une jointure entre deux photos. Ce n'était ni une image dupliquée, ni un dégradé mal calculé au sens littéral, mais un conflit de classes CSS créant un débordement de conteneur.
+
+**Correction** : séparation des responsabilités — `ProgressiveImage` reste `relative` en interne, et les sites d'appel ajoutent leur propre `<div className="absolute inset-0">` autour de l'appel plutôt que de passer "absolute" au composant. Corrigé aux 3 endroits concernés (pas seulement l'écran signalé) : `CookCard` (grille de recherche/accueil), fiche cuisinier, fiche plat.
+
+**Test de confirmation** : 5 plats différents ouverts et capturés (Pizza napolitaine, Nems croustillants, Jollof rice, Houmous & falafels, Bo bun au bœuf) + la fiche cuisinier d'Omar Haddad + la grille de recherche complète (45 cuisiniers) — aucune trace du défaut nulle part. Mesure DOM après correction : conteneur = 224px = hauteur du parent, plus de débordement, sur chaque écran testé.
+
+### 2. Le profil affiche-t-il bien une icône générique sans photo ?
+
+**Oui** — icône Lucide `User` sur fond `terracotta-100` (orange clair), même style qu'avant l'introduction de la photo réelle. Vérifié visuellement en local et en production.
+
+### 3. Le nom "Albert School" apparaît-il partout où il faut ?
+
+**Oui** — `grep` sur tout `src/` confirme que "Utilisateur démo" n'apparaissait qu'à un seul endroit (le `<h1>` de `ProfilePage.tsx`), déjà remplacé. Aucune autre occurrence du nom de l'utilisateur connecté ailleurs dans l'app (vérifié, pas juste supposé).
+
+### 4. Build et déploiement OK ? URL finale ?
+
+- `npm run build` : ✅ sans erreur.
+- `npm run typecheck:worker` : ✅ sans erreur.
+- `npx oxlint` : ✅ 0 erreur (3 avertissements pré-existants acceptés, inchangés).
+- Aucun changement de schéma/seed D1 cette session (bugs visuels + contenu statique uniquement) — pas de re-seed nécessaire.
+- `wrangler deploy` : ✅ réellement exécuté, 13 fichiers modifiés uploadés (logo, favicons, icônes, JS/CSS), nouvelle version publiée.
+- Vérifié en production par navigateur piloté : Profil (Albert School + icône générique), fiche plat (image propre, sans jointure), logo propre dans le header — captures d'écran à l'appui, pas juste "ça devrait marcher".
+
+**URL finale à tester : https://voisin-gourmand.synagogue.workers.dev**
+
+### 5. Note de confiance finale, et le point bloquant potentiel
+
+**Note : 9/10.**
+
+**Honnêtement, pour jeudi : oui, cette version suffit.** Les deux bugs visuels les plus embarrassants pour une démo live devant un jury (une image manifestement cassée sur l'écran le plus consulté de l'app — la fiche plat — et un liseré blanc disgracieux sur le logo affiché en permanence dans le header) sont corrigés et vérifiés à l'œil ET par mesure technique, pas juste "probablement réglés". Le profil et le nom de l'utilisateur sont des détails de cohérence narrative, pas des risques de plantage.
+
+**Le seul point qui reste un vrai jugement d'appréciation, pas un blocage technique** : cette app n'a jamais eu de suite de tests automatisés (assumé depuis le premier audit), donc chaque nouvelle session de corrections repose sur une vérification manuelle exhaustive comme celle menée ici — robuste pour CETTE présentation, mais si le jury demande "et si vous ajoutiez une fonctionnalité demain, comment savez-vous que vous ne recassez rien ?", la réponse honnête est "on vérifierait à nouveau à la main". Ce n'est pas un point bloquant pour jeudi (l'app fonctionne, testée), mais c'est la limite structurelle à ne pas maquiller si la question arrive à l'oral.
